@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Vasl</string>
+
+
+    <string name="action_settings">Settings</string>
+    <string name="action_search">Search</string>
+    <string name="action_delete">Delete</string>
+
+
+
+    <!--for filtered search-->
+    <string name="toolbar_title">Contacts</string>
+    <string name="search_hint">Type name…</string>
+
+
+    <!--for swipe delete list-->
+    <string name="delete">DELETE</string>
+
+</resources>

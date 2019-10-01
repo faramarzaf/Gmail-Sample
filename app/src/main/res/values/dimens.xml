@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="padding_list_row">16dp</dimen>
+    <dimen name="messages_padding_left">72dp</dimen>
+    <dimen name="icon_width_height">40dp</dimen>
+    <dimen name="msg_text_primary">16sp</dimen>
+    <dimen name="msg_text_secondary">14sp</dimen>
+    <dimen name="icon_star">25dp</dimen>
+    <dimen name="icon_text">22dp</dimen>
+    <dimen name="timestamp">12dp</dimen>
+
+
+
+    <!--for filteredSearch-->
+    <dimen name="activity_margin">16dp</dimen>
+    <dimen name="thumbnail">40dp</dimen>
+    <dimen name="row_padding">10dp</dimen>
+    <dimen name="contact_name">15dp</dimen>
+    <dimen name="contact_number">12dp</dimen>
+
+
+    <!--for swipe delete list-->
+    <dimen name="activity_padding_horizontal">16dp</dimen>
+    <dimen name="padd_10">10dp</dimen>
+    <dimen name="ic_delete">30dp</dimen>
+
+
+
+</resources>
