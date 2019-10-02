@@ -33,8 +33,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
 
 
     private Context mContext;
-    private List<Message> messages;
-    private List<Message> messagesListFiltered;
+    List<Message> messages = new ArrayList<>();
+
+    private List<Message> messagesListFiltered = new ArrayList<>();
 
     private MessageAdapterListener listener;
     private SparseBooleanArray selectedItems;
@@ -53,7 +54,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         public TextView from, subject, message, iconText, timestamp;
         public ImageView iconImp, imgProfile;
         public LinearLayout messageContainer;
-        public RelativeLayout iconContainer, iconBack, iconFront;
+        public RelativeLayout iconContainer, iconBack, iconFront, hole_of_list;
 
 
         public MyViewHolder(View view) {
@@ -68,9 +69,12 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
             iconImp = (ImageView) view.findViewById(R.id.icon_star);
             imgProfile = (ImageView) view.findViewById(R.id.icon_profile);
             messageContainer = (LinearLayout) view.findViewById(R.id.message_container);
+            hole_of_list = (RelativeLayout) view.findViewById(R.id.hole_of_list);
             iconContainer = (RelativeLayout) view.findViewById(R.id.icon_container);
+
             view.setOnLongClickListener(this);
         }
+
 
         @Override
         public boolean onLongClick(View view) {
@@ -125,6 +129,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         animationItemsIndex = new SparseBooleanArray();
     }
 
+    public MessagesAdapter() {
+
+    }
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -318,11 +325,19 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
     }
 
     public void removeItem(int position) {
-        messagesListFiltered.remove(position);
+
+        /*messagesListFiltered.remove(position);
         // notify the item removed by position
         // to perform recycler view <span class="intexthighlight" style="color: rgb(26, 117, 255); line-height: 27.1833px;" phasehl="metakeyword:en-US" id="uWsDE">delete</span> animations
         // NOTE: don't call notifyDataSetChanged()
-        notifyItemRemoved(position);
+        notifyItemRemoved(position);*/
+
+
+        if (messagesListFiltered != null && messagesListFiltered.size() > 0) {
+            messagesListFiltered.remove(position);
+            notifyItemRemoved(position);
+        }
+
     }
 
     public void restoreItem(Message item, int position) {

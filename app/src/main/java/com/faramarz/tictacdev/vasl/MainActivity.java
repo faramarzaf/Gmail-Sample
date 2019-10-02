@@ -4,12 +4,14 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.faramarz.tictacdev.vasl.adapter.MessagesAdapter;
 import com.faramarz.tictacdev.vasl.helper.DividerItemDecoration;
+import com.faramarz.tictacdev.vasl.helper.RecyclerItemTouchHelper;
 import com.faramarz.tictacdev.vasl.model.Message;
 import com.faramarz.tictacdev.vasl.network.ApiClient;
 import com.faramarz.tictacdev.vasl.network.ApiInterface;
@@ -39,20 +41,21 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, MessagesAdapter.MessageAdapterListener {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, MessagesAdapter.MessageAdapterListener, RecyclerItemTouchHelper.RecyclerItemTouchHelperListener {
 
     private List<Message> messages = new ArrayList<>();
+    private List<Message> messageList;
+
     private RecyclerView recyclerView;
     private MessagesAdapter mAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ActionModeCallback actionModeCallback;
     private ActionMode actionMode;
-
     private SearchView searchView;
 
-    LinearLayout message_container, view_background;
 
-    // be jaye forground message container
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private CoordinatorLayout coordinatorLayout;
 
 
     @Override
@@ -60,8 +63,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        message_container = findViewById(R.id.message_container);
-        view_background = findViewById(R.id.view_background);
+        coordinatorLayout = findViewById(R.id.CoordinatorLayout);
+        messageList = new ArrayList<>();
+        mAdapter = new MessagesAdapter(MainActivity.this, messageList, this);
 
         setSupportActionBar(toolbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -96,47 +100,18 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     }
                 }
         );
+        // adding item touch helper
+        // only ItemTouchHelper.LEFT added to detect Right to Left swipe
+        // if you want both Right -> Left and Left -> Right
+        // add pass ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT as param
+        ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT, this);
+        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
+
+
+        // making http call and fetching menu json
+        getInbox();
 
     }
-
-
-
-  /*  ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT | ItemTouchHelper.DOWN | ItemTouchHelper.UP) {
-
-        @Override
-        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-            Toast.makeText(MainActivity.this, "on Move", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        @Override
-        public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
-            Toast.makeText(MainActivity.this, "on Swiped ", Toast.LENGTH_SHORT).show();
-            //Remove swiped item from list and notify the RecyclerView
-            final int position = viewHolder.getAdapterPosition();
-            mAdapter.notifyItemRemoved(position);
-        }
-    };*/
-
-
-    ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-
-        @Override
-        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
-            return true;
-        }
-
-        @Override
-        public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
-            final int position = viewHolder.getAdapterPosition(); //get position which is swipe
-            mAdapter.notifyItemRemoved(position);
-            mAdapter.notifyItemRangeChanged(position, mAdapter.getItemCount());
-            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
-            itemTouchHelper.attachToRecyclerView(recyclerView); //set swipe to recylcerview
-
-        }
-
-    };
 
 
     /**
@@ -256,19 +231,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         return super.onOptionsItemSelected(item);
     }
 
-
-
-
-  /*  private void whiteNotificationBar(View view) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            int flags = view.getSystemUiVisibility();
-            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            view.setSystemUiVisibility(flags);
-            getWindow().setStatusBarColor(Color.WHITE);
-        }
-    }
-*/
-
     @Override
     public void onRefresh() {
         // swipe refresh is performed, fetch the messages again
@@ -343,6 +305,17 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
     }
 
+    @Override
+    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
+        if (viewHolder instanceof MessagesAdapter.MyViewHolder && messageList != null && messageList.size() > 0) {
+
+            // final int deletedIndex = viewHolder.getAdapterPosition();
+            //deleteMessages();
+            mAdapter.removeItem(position);
+            mAdapter.notifyDataSetChanged();
+        }
+
+    }
 
     private class ActionModeCallback implements ActionMode.Callback {
         @Override
@@ -398,4 +371,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
         mAdapter.notifyDataSetChanged();
     }
+
+
 }

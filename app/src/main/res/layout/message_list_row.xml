@@ -9,7 +9,9 @@
     android:paddingLeft="?listPreferredItemPaddingLeft"
     android:paddingTop="@dimen/padding_list_row"
     android:paddingRight="?listPreferredItemPaddingRight"
-    android:paddingBottom="@dimen/padding_list_row">
+    android:paddingBottom="@dimen/padding_list_row"
+    android:id="@+id/hole_of_list"
+    >
 
     <LinearLayout
         android:id="@+id/message_container"
@@ -112,29 +114,6 @@
         android:layout_alignParentBottom="true"
         android:tint="@color/icon_tint_normal" />
 
-    <LinearLayout
-        android:id="@+id/view_background"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/delete_icon"
-            android:layout_width="@dimen/ic_delete"
-            android:layout_height="@dimen/ic_delete"
-            android:layout_marginRight="@dimen/padd_10"
-            android:src="@drawable/ic_delete_white_24dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="@dimen/padd_10"
-            android:text="@string/delete"
-            android:textColor="#fff"
-            android:textSize="13dp" />
-
-
-    </LinearLayout>
 
 
 </RelativeLayout>
