@@ -1,7 +1,5 @@
 package com.faramarz.tictacdev.vasl.adapter;
 
-
-import android.content.ClipData;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.support.v4.content.ContextCompat;
@@ -18,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -31,31 +30,26 @@ import java.util.List;
 
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyViewHolder> implements Filterable {
 
-
     private Context mContext;
-    List<Message> messages = new ArrayList<>();
-
-    private List<Message> messagesListFiltered = new ArrayList<>();
 
     private MessageAdapterListener listener;
     private SparseBooleanArray selectedItems;
-
-    // array used to perform multiple animation at once
     private SparseBooleanArray animationItemsIndex;
     private boolean reverseAllAnimations = false;
-
-    // index is used to animate only the selected row
-    // dirty fix, find a better solution
     private static int currentSelectedIndex = -1;
 
 
-    public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener, Filterable {
+    List<Message> messages = new ArrayList<>();
+    private List<Message> messagesListFiltered = new ArrayList<>();
+
+
+
+    public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
 
         public TextView from, subject, message, iconText, timestamp;
         public ImageView iconImp, imgProfile;
         public LinearLayout messageContainer;
         public RelativeLayout iconContainer, iconBack, iconFront, hole_of_list;
-
 
         public MyViewHolder(View view) {
             super(view);
@@ -83,42 +77,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
             return true;
         }
 
-        @Override
-        public Filter getFilter() {
-            return new Filter() {
-                @Override
-                protected FilterResults performFiltering(CharSequence charSequence) {
-                    String charString = charSequence.toString();
-                    if (charString.isEmpty()) {
-                        messagesListFiltered = messages;
-                    } else {
-                        List<Message> filteredList = new ArrayList<>();
-                        for (Message row : messagesListFiltered) {
 
-                            // name match condition. this might differ depending on your requirement
-                            // here we are looking for name or phone number match
-                            if (row.getFrom().toLowerCase().contains(charString.toLowerCase()) || row.getSubject().contains(charSequence)) {
-                                filteredList.add(row);
-                            }
-                        }
-
-                        messagesListFiltered = filteredList;
-                    }
-
-                    FilterResults filterResults = new FilterResults();
-                    filterResults.values = messagesListFiltered;
-                    return filterResults;
-                }
-
-                @Override
-                protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-                    messagesListFiltered = (ArrayList<Message>) filterResults.values;
-                    notifyDataSetChanged();
-                }
-            };
-        }
     }
 
+
+
+    public MessagesAdapter() {
+
+    }
 
     public MessagesAdapter(Context mContext, List<Message> messages, MessageAdapterListener listener) {
         this.mContext = mContext;
@@ -129,22 +95,15 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         animationItemsIndex = new SparseBooleanArray();
     }
 
-    public MessagesAdapter() {
-
-    }
-
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.message_list_row, parent, false);
-
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.message_list_row, parent, false);
         return new MyViewHolder(itemView);
     }
 
-
     @Override
     public void onBindViewHolder(MyViewHolder holder, final int position) {
-        Message message = messagesListFiltered.get(position);
+        Message message = messages.get(position);
 
         // displaying text view data
         holder.from.setText(message.getFrom());
@@ -173,7 +132,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         // apply click events
         applyClickEvents(holder, position);
     }
-
 
     private void applyClickEvents(MyViewHolder holder, final int position) {
         holder.iconContainer.setOnClickListener(new View.OnClickListener() {
@@ -246,7 +204,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         }
     }
 
-
     // As the views will be reused, sometimes the icon appears as
     // flipped because older view is reused. Reset the Y-axis to 0
     private void resetIconYAxis(View view) {
@@ -275,7 +232,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         }
     }
 
-
     private void applyReadStatus(MyViewHolder holder, Message message) {
         if (message.isRead()) {
             holder.from.setTypeface(null, Typeface.NORMAL);
@@ -289,7 +245,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
             holder.subject.setTextColor(ContextCompat.getColor(mContext, R.color.subject));
         }
     }
-
 
     @Override
     public Filter getFilter() {
@@ -322,28 +277,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
                 notifyDataSetChanged();
             }
         };
-    }
-
-    public void removeItem(int position) {
-
-        /*messagesListFiltered.remove(position);
-        // notify the item removed by position
-        // to perform recycler view <span class="intexthighlight" style="color: rgb(26, 117, 255); line-height: 27.1833px;" phasehl="metakeyword:en-US" id="uWsDE">delete</span> animations
-        // NOTE: don't call notifyDataSetChanged()
-        notifyItemRemoved(position);*/
-
-
-        if (messagesListFiltered != null && messagesListFiltered.size() > 0) {
-            messagesListFiltered.remove(position);
-            notifyItemRemoved(position);
-        }
-
-    }
-
-    public void restoreItem(Message item, int position) {
-        messagesListFiltered.add(position, item);
-        // notify item added by position
-        notifyItemInserted(position);
     }
 
     @Override
@@ -390,7 +323,11 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
     private void resetCurrentIndex() {
         currentSelectedIndex = -1;
     }
-
+    public void restoreItem(Message item, int position) {
+        messagesListFiltered.add(position, item);
+        // notify item added by position
+        notifyItemInserted(position);
+    }
 
     public interface MessageAdapterListener {
         void onIconClicked(int position);

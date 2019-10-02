@@ -2,25 +2,14 @@ package com.faramarz.tictacdev.vasl;
 
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.support.annotation.NonNull;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-
-import com.faramarz.tictacdev.vasl.adapter.MessagesAdapter;
-import com.faramarz.tictacdev.vasl.helper.DividerItemDecoration;
-import com.faramarz.tictacdev.vasl.helper.RecyclerItemTouchHelper;
-import com.faramarz.tictacdev.vasl.model.Message;
-import com.faramarz.tictacdev.vasl.network.ApiClient;
-import com.faramarz.tictacdev.vasl.network.ApiInterface;
-
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -31,8 +20,14 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.Toast;
+
+import com.faramarz.tictacdev.vasl.adapter.MessagesAdapter;
+import com.faramarz.tictacdev.vasl.helper.DividerItemDecoration;
+import com.faramarz.tictacdev.vasl.helper.RecyclerItemTouchHelper;
+import com.faramarz.tictacdev.vasl.model.Message;
+import com.faramarz.tictacdev.vasl.network.ApiClient;
+import com.faramarz.tictacdev.vasl.network.ApiInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,32 +38,36 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, MessagesAdapter.MessageAdapterListener, RecyclerItemTouchHelper.RecyclerItemTouchHelperListener {
 
-    private List<Message> messages = new ArrayList<>();
+
     private List<Message> messageList;
 
+
     private RecyclerView recyclerView;
+    private FloatingActionButton fab;
+
     private MessagesAdapter mAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ActionModeCallback actionModeCallback;
     private ActionMode actionMode;
     private SearchView searchView;
+    SearchManager searchManager;
 
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private CoordinatorLayout coordinatorLayout;
-
+    CoordinatorLayout coordinatorLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        coordinatorLayout = findViewById(R.id.CoordinatorLayout);
-        messageList = new ArrayList<>();
-        mAdapter = new MessagesAdapter(MainActivity.this, messageList, this);
-
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+
+        fab = findViewById(R.id.fab);
+        coordinatorLayout = findViewById(R.id.CoordinatorLayout);
+        recyclerView = findViewById(R.id.recycler_view);
+        swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -77,19 +76,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             }
         });
 
-
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(this);
+        actionModeCallback = new ActionModeCallback();
 
-        mAdapter = new MessagesAdapter(this, messages, this);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(mLayoutManager);
+        messageList = new ArrayList<>();
+        mAdapter = new MessagesAdapter(MainActivity.this, messageList, this);
+        recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         recyclerView.setAdapter(mAdapter);
-
-        actionModeCallback = new ActionModeCallback();
 
         // show loader and fetch messages
         swipeRefreshLayout.post(
@@ -100,46 +95,39 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     }
                 }
         );
+
         // adding item touch helper
         // only ItemTouchHelper.LEFT added to detect Right to Left swipe
         // if you want both Right -> Left and Left -> Right
         // add pass ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT as param
+
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT, this);
         new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
-
 
         // making http call and fetching menu json
         getInbox();
 
     }
 
-
     /**
      * Fetches mail messages by making HTTP request
      * url: https://api.androidhive.info/json/inbox.json
      */
-
     private void getInbox() {
         swipeRefreshLayout.setRefreshing(true);
-        ApiInterface apiService =
-                ApiClient.getClient().create(ApiInterface.class);
-
+        ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
         Call<List<Message>> call = apiService.getInbox();
         call.enqueue(new Callback<List<Message>>() {
             @Override
             public void onResponse(Call<List<Message>> call, Response<List<Message>> response) {
                 // clear the inbox
-                messages.clear();
+                messageList.clear();
 
-                // add all the messages
-                // messages.addAll(response.body());
 
-                // TODO - avoid looping
-                // the loop was performed to add colors to each message
                 for (Message message : response.body()) {
                     // generate a random color
                     message.setColor(getRandomMaterialColor("400"));
-                    messages.add(message);
+                    messageList.add(message);
                 }
 
                 mAdapter.notifyDataSetChanged();
@@ -153,7 +141,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             }
         });
     }
-
 
     /**
      * chooses a random color from array.xml
@@ -177,7 +164,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         return returnColor;
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -187,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         //SearchView searchView = (SearchView) searchItem.getActionView();
 
         // Associate searchable configuration with the SearchView
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         searchView = (SearchView) searchItem.getActionView();
         searchView = (SearchView) menu.findItem(R.id.action_search)
                 .getActionView();
@@ -214,7 +200,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         return true;
     }
 
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -238,6 +223,16 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     @Override
+    public void onBackPressed() {
+        // close search view on back button pressed
+        if (!searchView.isIconified()) {
+            searchView.setIconified(true);
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    @Override
     public void onIconClicked(int position) {
         if (actionMode == null) {
             actionMode = startSupportActionMode(actionModeCallback);
@@ -250,29 +245,26 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     public void onIconImportantClicked(int position) {
         // Star icon is clicked,
         // mark the message as important
-        Message message = messages.get(position);
+        Message message = messageList.get(position);
         message.setImportant(!message.isImportant());
-        messages.set(position, message);
+        messageList.set(position, message);
         mAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onMessageRowClicked(int position) {
-        // verify whether action mode is enabled or not
-        // if enabled, change the row state to activated
         if (mAdapter.getSelectedItemCount() > 0) {
             enableActionMode(position);
         } else {
             // read the message which removes bold from the row
-            Message message = messages.get(position);
+            Message message = messageList.get(position);
             message.setRead(true);
-            messages.set(position, message);
+            messageList.set(position, message);
             mAdapter.notifyDataSetChanged();
 
             Toast.makeText(getApplicationContext(), "Read: " + message.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
-
 
     @Override
     public void onRowLongClicked(int position) {
@@ -308,13 +300,10 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
         if (viewHolder instanceof MessagesAdapter.MyViewHolder && messageList != null && messageList.size() > 0) {
-
-            // final int deletedIndex = viewHolder.getAdapterPosition();
-            //deleteMessages();
-            mAdapter.removeItem(position);
-            mAdapter.notifyDataSetChanged();
+            messageList.remove(position);
+            mAdapter.notifyItemRemoved(position);
+            // mAdapter.notifyItemRangeChanged(position, messageList.size());
         }
-
     }
 
     private class ActionModeCallback implements ActionMode.Callback {
@@ -371,6 +360,5 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
         mAdapter.notifyDataSetChanged();
     }
-
 
 }

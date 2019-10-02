@@ -11,7 +11,7 @@ import com.faramarz.tictacdev.vasl.adapter.MessagesAdapter;
 public class RecyclerItemTouchHelper extends ItemTouchHelper.SimpleCallback {
 
     private RecyclerItemTouchHelperListener listener;
-    MessagesAdapter messagesAdapter = new MessagesAdapter();
+   // MessagesAdapter messagesAdapter = new MessagesAdapter();
 
 
 
