@@ -4,6 +4,8 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -28,6 +30,7 @@ import com.faramarz.tictacdev.vasl.helper.RecyclerItemTouchHelper;
 import com.faramarz.tictacdev.vasl.model.Message;
 import com.faramarz.tictacdev.vasl.network.ApiClient;
 import com.faramarz.tictacdev.vasl.network.ApiInterface;
+import com.pd.chocobar.ChocoBar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,22 +41,15 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, MessagesAdapter.MessageAdapterListener, RecyclerItemTouchHelper.RecyclerItemTouchHelperListener {
 
-
     private List<Message> messageList;
-
-
     private RecyclerView recyclerView;
     private FloatingActionButton fab;
-
     private MessagesAdapter mAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ActionModeCallback actionModeCallback;
     private ActionMode actionMode;
     private SearchView searchView;
     SearchManager searchManager;
-
-
-    private static final String TAG = MainActivity.class.getSimpleName();
     CoordinatorLayout coordinatorLayout;
 
     @Override
@@ -91,7 +87,11 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 new Runnable() {
                     @Override
                     public void run() {
-                        getInbox();
+                        if (isNetworkAvailable()) {
+                            getInbox();
+                        } else {
+                            showConnectionSnackBar();
+                        }
                     }
                 }
         );
@@ -105,8 +105,23 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
 
         // making http call and fetching menu json
-        getInbox();
+//        getInbox();
 
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    void showConnectionSnackBar() {
+        ChocoBar.builder().setActivity(MainActivity.this)
+                .setText("Check your connection and try again")
+                .setDuration(ChocoBar.LENGTH_LONG)
+                .red()
+                .show();
     }
 
     /**
@@ -136,22 +151,19 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
             @Override
             public void onFailure(Call<List<Message>> call, Throwable t) {
-                Toast.makeText(getApplicationContext(), "Unable to fetch json: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(), "Unable to fetch json: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                showConnectionSnackBar();
                 swipeRefreshLayout.setRefreshing(false);
             }
         });
     }
 
-    /**
-     * chooses a random color from array.xml
-     */
+
     private int getRandomMaterialColor(String typeColor) {
         int returnColor = Color.GRAY;
-
         /**
          below code to generate random color for list thumbnail
          */
-
         int arrayId = getResources().getIdentifier("mdcolor_" + typeColor, "array", getPackageName());
         if (arrayId != 0) {
             TypedArray colors = getResources().obtainTypedArray(arrayId);
@@ -159,8 +171,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             returnColor = colors.getColor(index, Color.GRAY);
             colors.recycle();
         }
-
-
         return returnColor;
     }
 
@@ -169,17 +179,16 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        //SearchView searchView = (SearchView) searchItem.getActionView();
-
         // Associate searchable configuration with the SearchView
         searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        searchView = (SearchView) searchItem.getActionView();
-        searchView = (SearchView) menu.findItem(R.id.action_search)
-                .getActionView();
-        searchView.setSearchableInfo(searchManager
-                .getSearchableInfo(getComponentName()));
+        searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setMaxWidth(Integer.MAX_VALUE);
+
+       /* MenuItem searchItem = menu.findItem(R.id.action_search);
+        searchView = (SearchView) searchItem.getActionView();
+*/
+
 
         // listening to search query text change
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -206,10 +215,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_search) {
-            //    Toast.makeText(getApplicationContext(), "Search...", Toast.LENGTH_SHORT).show();
             return true;
         }
 
@@ -237,7 +244,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         if (actionMode == null) {
             actionMode = startSupportActionMode(actionModeCallback);
         }
-
         toggleSelection(position);
     }
 
@@ -255,14 +261,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     public void onMessageRowClicked(int position) {
         if (mAdapter.getSelectedItemCount() > 0) {
             enableActionMode(position);
-        } else if ( messageList != null && messageList.size() > 0){
+        } else if (messageList != null && messageList.size() > 0) {
             // read the message which removes bold from the row
-
             Message message = messageList.get(position);
             message.setRead(true);
             messageList.set(position, message);
             mAdapter.notifyDataSetChanged();
-
             Toast.makeText(getApplicationContext(), "Read: " + message.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
@@ -289,7 +293,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private void toggleSelection(int position) {
         mAdapter.toggleSelection(position);
         int count = mAdapter.getSelectedItemCount();
-
         if (count == 0) {
             actionMode.finish();
         } else {

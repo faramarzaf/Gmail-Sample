@@ -31,18 +31,13 @@ import java.util.List;
 public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyViewHolder> implements Filterable {
 
     private Context mContext;
-
     private MessageAdapterListener listener;
     private SparseBooleanArray selectedItems;
     private SparseBooleanArray animationItemsIndex;
     private boolean reverseAllAnimations = false;
     private static int currentSelectedIndex = -1;
-
-
-    List<Message> messages = new ArrayList<>();
+    List<Message> messagesList = new ArrayList<>();
     private List<Message> messagesListFiltered = new ArrayList<>();
-
-
 
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
 
@@ -53,22 +48,20 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
 
         public MyViewHolder(View view) {
             super(view);
-            from = (TextView) view.findViewById(R.id.from);
-            subject = (TextView) view.findViewById(R.id.txt_primary);
-            message = (TextView) view.findViewById(R.id.txt_secondary);
-            iconText = (TextView) view.findViewById(R.id.icon_text);
-            timestamp = (TextView) view.findViewById(R.id.timestamp);
-            iconBack = (RelativeLayout) view.findViewById(R.id.icon_back);
-            iconFront = (RelativeLayout) view.findViewById(R.id.icon_front);
-            iconImp = (ImageView) view.findViewById(R.id.icon_star);
-            imgProfile = (ImageView) view.findViewById(R.id.icon_profile);
-            messageContainer = (LinearLayout) view.findViewById(R.id.message_container);
-            hole_of_list = (RelativeLayout) view.findViewById(R.id.hole_of_list);
-            iconContainer = (RelativeLayout) view.findViewById(R.id.icon_container);
-
+            from = view.findViewById(R.id.from);
+            subject = view.findViewById(R.id.txt_primary);
+            message = view.findViewById(R.id.txt_secondary);
+            iconText = view.findViewById(R.id.icon_text);
+            timestamp = view.findViewById(R.id.timestamp);
+            iconBack = view.findViewById(R.id.icon_back);
+            iconFront = view.findViewById(R.id.icon_front);
+            iconImp = view.findViewById(R.id.icon_star);
+            imgProfile = view.findViewById(R.id.icon_profile);
+            messageContainer = view.findViewById(R.id.message_container);
+            hole_of_list = view.findViewById(R.id.hole_of_list);
+            iconContainer = view.findViewById(R.id.icon_container);
             view.setOnLongClickListener(this);
         }
-
 
         @Override
         public boolean onLongClick(View view) {
@@ -76,20 +69,16 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
             return true;
         }
-
-
     }
-
-
 
     public MessagesAdapter() {
 
     }
 
-    public MessagesAdapter(Context mContext, List<Message> messages, MessageAdapterListener listener) {
+    public MessagesAdapter(Context mContext, List<Message> messagesList, MessageAdapterListener listener) {
         this.mContext = mContext;
-        this.messages = messages;
-        this.messagesListFiltered = messages;
+        this.messagesList = messagesList;
+        this.messagesListFiltered = messagesList;
         this.listener = listener;
         selectedItems = new SparseBooleanArray();
         animationItemsIndex = new SparseBooleanArray();
@@ -103,7 +92,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, final int position) {
-        Message message = messages.get(position);
+        final Message message = messagesList.get(position);
 
         // displaying text view data
         holder.from.setText(message.getFrom());
@@ -219,7 +208,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
 
     @Override
     public long getItemId(int position) {
-        return messages.get(position).getId();
+        return messagesList.get(position).getId();
     }
 
     private void applyImportant(MyViewHolder holder, Message message) {
@@ -253,10 +242,10 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
             protected FilterResults performFiltering(CharSequence charSequence) {
                 String charString = charSequence.toString();
                 if (charString.isEmpty()) {
-                    messagesListFiltered = messages;
+                    messagesListFiltered = messagesList;
                 } else {
                     List<Message> filteredList = new ArrayList<>();
-                    for (Message row : messages) {
+                    for (Message row : messagesList) {
                         // name match condition. this might differ depending on your requirement
                         // here we are looking for name or phone number match
                         if (row.getFrom().toLowerCase().startsWith(charString.toLowerCase())) {
@@ -316,13 +305,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
     }
 
     public void removeData(int position) {
-        messages.remove(position);
+        messagesList.remove(position);
         resetCurrentIndex();
     }
 
     private void resetCurrentIndex() {
         currentSelectedIndex = -1;
     }
+
     public void restoreItem(Message item, int position) {
         messagesListFiltered.add(position, item);
         // notify item added by position

@@ -42,5 +42,8 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:3.7.0'
 
 
+    // material snackbar
+    implementation 'com.github.Pradyuman7:ChocoBar:V1.0'
+
 
 }
