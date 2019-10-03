@@ -255,8 +255,9 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     public void onMessageRowClicked(int position) {
         if (mAdapter.getSelectedItemCount() > 0) {
             enableActionMode(position);
-        } else {
+        } else if ( messageList != null && messageList.size() > 0){
             // read the message which removes bold from the row
+
             Message message = messageList.get(position);
             message.setRead(true);
             messageList.set(position, message);
