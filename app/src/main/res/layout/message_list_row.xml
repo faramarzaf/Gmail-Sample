@@ -10,7 +10,7 @@
     android:paddingTop="@dimen/padding_list_row"
     android:paddingRight="?listPreferredItemPaddingRight"
     android:paddingBottom="@dimen/padding_list_row"
-    android:id="@+id/hole_of_list"
+    android:id="@+id/holeOfList"
     >
 
     <LinearLayout

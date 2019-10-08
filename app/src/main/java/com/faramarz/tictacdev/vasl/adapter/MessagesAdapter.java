@@ -16,7 +16,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -44,7 +43,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
         public TextView from, subject, message, iconText, timestamp;
         public ImageView iconImp, imgProfile;
         public LinearLayout messageContainer;
-        public RelativeLayout iconContainer, iconBack, iconFront, hole_of_list;
+        public RelativeLayout iconContainer, iconBack, iconFront, holeOfList;
 
         public MyViewHolder(View view) {
             super(view);
@@ -58,7 +57,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.MyView
             iconImp = view.findViewById(R.id.icon_star);
             imgProfile = view.findViewById(R.id.icon_profile);
             messageContainer = view.findViewById(R.id.message_container);
-            hole_of_list = view.findViewById(R.id.hole_of_list);
+            holeOfList = view.findViewById(R.id.holeOfList);
             iconContainer = view.findViewById(R.id.icon_container);
             view.setOnLongClickListener(this);
         }

@@ -51,19 +51,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private SearchView searchView;
     SearchManager searchManager;
     CoordinatorLayout coordinatorLayout;
+    Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        fab = findViewById(R.id.fab);
-        coordinatorLayout = findViewById(R.id.CoordinatorLayout);
-        recyclerView = findViewById(R.id.recycler_view);
-        swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
-
+        bind();
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -74,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         swipeRefreshLayout.setOnRefreshListener(this);
         actionModeCallback = new ActionModeCallback();
-
         messageList = new ArrayList<>();
         mAdapter = new MessagesAdapter(MainActivity.this, messageList, this);
         recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
@@ -82,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         recyclerView.setAdapter(mAdapter);
 
-        // show loader and fetch messages
+
         swipeRefreshLayout.post(
                 new Runnable() {
                     @Override
@@ -96,16 +91,19 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 }
         );
 
-        // adding item touch helper
-        // only ItemTouchHelper.LEFT added to detect Right to Left swipe
         // if you want both Right -> Left and Left -> Right
         // add pass ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT as param
 
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT, this);
         new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
 
-        // making http call and fetching menu json
-//        getInbox();
+    }
+
+    private void bind() {
+        fab = findViewById(R.id.fab);
+        coordinatorLayout = findViewById(R.id.CoordinatorLayout);
+        recyclerView = findViewById(R.id.recycler_view);
+        swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
 
     }
 
@@ -124,10 +122,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 .show();
     }
 
-    /**
-     * Fetches mail messages by making HTTP request
-     * url: https://api.androidhive.info/json/inbox.json
-     */
     private void getInbox() {
         swipeRefreshLayout.setRefreshing(true);
         ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
@@ -151,7 +145,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
             @Override
             public void onFailure(Call<List<Message>> call, Throwable t) {
-                //Toast.makeText(getApplicationContext(), "Unable to fetch json: " + t.getMessage(), Toast.LENGTH_LONG).show();
                 showConnectionSnackBar();
                 swipeRefreshLayout.setRefreshing(false);
             }
@@ -176,7 +169,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         // Associate searchable configuration with the SearchView
@@ -185,12 +177,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setMaxWidth(Integer.MAX_VALUE);
 
-       /* MenuItem searchItem = menu.findItem(R.id.action_search);
-        searchView = (SearchView) searchItem.getActionView();
-*/
-
-
-        // listening to search query text change
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -201,7 +187,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
             @Override
             public boolean onQueryTextChange(String query) {
-                // filter recycler view when text is changed
                 mAdapter.getFilter().filter(query);
                 return false;
             }
@@ -215,7 +200,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_search) {
             return true;
         }
@@ -306,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         if (viewHolder instanceof MessagesAdapter.MyViewHolder && messageList != null && messageList.size() > 0) {
             messageList.remove(position);
             mAdapter.notifyItemRemoved(position);
-            // mAdapter.notifyItemRangeChanged(position, messageList.size());
+
         }
     }
 
